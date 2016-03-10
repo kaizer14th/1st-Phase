@@ -1,0 +1,10 @@
+canvas {
+	position: absolute;
+	width: 700px;
+	height: 750px;
+	background: transparent;
+}
+
+#backgroundCanvas {
+	/*background-color: #000;*/
+}
