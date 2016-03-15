@@ -18,11 +18,12 @@
 		game.images = [];
 		game.doneImages = 0;
 		game.requiredImages = 0;
+		game.lineWidth = 6;
 
 		game.enemy = {
 			array: [],
 			speed: 4,
-			width: 100,
+			width: 70,
 			spawn: true,
 			prevX: 250
 		}
@@ -30,7 +31,7 @@
 		game.coins = {
 			array: [],
 			speed: 4,
-			radius: 30,
+			radius: 20,
 			spawn: true,
 			prevX: 150
 		}
@@ -38,8 +39,8 @@
 		game.player = {
 			x: 300,
 			y: game.height - 110,
-			width: 100,
-			height: 100,
+			width: 70,
+			height: 70,
 			speed: 8,
 			life: true,
 			rendered: false
@@ -107,6 +108,14 @@
 					for(i in game.coins.array) {
 						var coinsArray = game.coins.array[i];
 							coinsArray[1] += game.coins.speed;
+							coinObj = {
+								x: coinsArray[0],
+								y: coinsArray[1],
+								radius: game.coins.radius
+							}
+						if (RectCircleColliding(coinObj, game.player)){
+							game.player.life = false;
+						}
 						if (coinsArray[1] + game.coins.radius > game.height + (game.coins.radius * 2)) {
 							temp.push(i);
 						}
@@ -115,6 +124,7 @@
 						game.coins.array.splice(temp[i],1);
 					}
 				}
+
 				if(game.enemy.array.length > 0) {
 					var temp = [];
 					player = {
@@ -148,30 +158,64 @@
 				}
 			}
 		}
+		function RectCircleColliding(circle,rect){
+		    var distX = Math.abs(circle.x - rect.x-rect.width/2);
+		    var distY = Math.abs(circle.y - rect.y-rect.height/2);
+
+		    if (distX > (rect.width/2 + circle.radius)) { return false; }
+		    if (distY > (rect.height/2 + circle.radius)) { return false; }
+
+		    if (distX <= (rect.width/2)) { return true; } 
+		    if (distY <= (rect.height/2)) { return true; }
+
+		    var dx=distX-rect.width/2;
+		    var dy=distY-rect.height/2;
+		    return (dx*dx+dy*dy<=(circle.radius*circle.radius));
+		}
 		function drawEnemy (array, fillColor) {
-			if (fillColor == undefined) {
-				fillColor = "rgb(0,255,0)";
-			}
+			// if (fillColor == undefined) {
+				fillColor = "rgb(255, 0, 0)";
+			// }
 				game.contextEnemy.beginPath();
 				game.contextEnemy.moveTo(array[0][0],array[0][1]);
 				for (var i = array.length - 1; i > 0; i--) {
 					game.contextEnemy.lineTo(array[i][0],array[i][1]);
 				}
+				var lineWidth = 7;
 				game.contextEnemy.closePath();
 				game.contextEnemy.fillStyle = fillColor;
 				game.contextEnemy.fill();
+				game.contextEnemy.clearRect(array[0][0] + lineWidth,array[0][1] + lineWidth, array[1][0] - array[0][0] - (lineWidth * 2), array[1][0] - array[0][0] - (lineWidth * 2));
+				game.contextEnemy.beginPath();
+				game.contextEnemy.rect(array[0][0],array[0][1],array[1][0] - array[0][0],array[1][0] - array[0][0]);
+				// game.contextEnemy.moveTo(array[0][0] + 10,array[0][1] + 10);
+				// game.contextEnemy.lineTo(array[1][0] - 10,array[1][1] + 10);
+				// game.contextEnemy.lineTo(array[2][0] - 10,array[2][1] - 10);
+				// game.contextEnemy.lineTo(array[3][0] + 10,array[3][1] - 10);
+				game.contextEnemy.closePath();
+				game.contextEnemy.lineWidth=game.lineWidth;
+				game.contextEnemy.fillStyle = fillColor;
+				game.contextEnemy.stroke();
 			
 		}
 		function drawCoin (x, y, radius) {
 			startAngle = 0;
 			endAngle = Math.PI*2;
 			anticlockwise = true;
-			color = "rgb(255,255,0)"
+			color = "rgb(0,0,0)";
+			colorRed = "rgb(255,0,0)";
 			game.contextCoins.beginPath();
-			game.contextCoins.fillStyle = color;
 	   		game.contextCoins.arc(x, y, radius, startAngle, endAngle, anticlockwise);
 			game.contextCoins.closePath();
-			game.contextCoins.fill();
+			game.contextCoins.strokeStyle = color;
+			game.contextCoins.lineWidth = game.lineWidth;
+			game.contextCoins.stroke();
+			game.contextCoins.beginPath();
+	   		game.contextCoins.arc(x, y, radius - (game.lineWidth * 1), startAngle, endAngle, anticlockwise);
+			game.contextCoins.closePath();
+			game.contextCoins.strokeStyle = colorRed;
+			game.contextCoins.lineWidth = game.lineWidth;
+			game.contextCoins.stroke();
 		}
 		function spawnSpot(d) {
 			var f = Math.floor(Math.random()*100) + 100;
