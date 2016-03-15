@@ -33,7 +33,8 @@
 			speed: 4,
 			radius: 20,
 			spawn: true,
-			prevX: 150
+			prevX: 150,
+			collectable: false
 		}
 
 		game.player = {
@@ -45,6 +46,8 @@
 			life: true,
 			rendered: false
 		}
+
+		game.powerUp = [false, "guard"];
 
 		game.spawnSpots = {
 			h: 1,
@@ -62,7 +65,14 @@
 		function init () {
 			loop();
 		}
-
+		function addPowerUp(){
+			var x = Math.floor(Math.random() * 10);
+			if (x <= 5) {
+				return 1;
+			} else {
+				return 0;
+			}
+		}
 		function update () {
 			if (!game.player.life) {
 				game.player.life = false;
@@ -85,7 +95,8 @@
 						var x = spawnSpot(game.enemy.prevX);
 						// console.log(x);
 						game.enemy.prevX = x;
-						var enemyArray = [[x,-game.enemy.width],[x + game.enemy.width,-game.enemy.width],[x + game.enemy.width,-game.enemy.width + game.enemy.width],[x,-game.enemy.width + game.enemy.width]];
+						var enemyArray = [[x,-game.enemy.width],[x + game.enemy.width,-game.enemy.width],[x + game.enemy.width,-game.enemy.width + game.enemy.width],
+						[x,-game.enemy.width + game.enemy.width]];
 						game.enemy.array.push(enemyArray);
 						game.enemy.spawn = true;
 					}, 1000);
@@ -96,7 +107,8 @@
 						// var x = Math.floor(Math.random()*(700 - game.coins.radius) + 5);
 						var x = spawnSpot(game.coins.prevX);
 						game.coins.prevX = x;
-						var coinsArray = [x, -1 * game.coins.radius, game.coins.radius];
+						var y = addPowerUp();
+						var coinsArray = [x, -1 * game.coins.radius, game.coins.radius,y];
 						game.coins.array.push(coinsArray);
 						game.coins.spawn = true;
 					}, 400);
@@ -175,17 +187,18 @@
 		function drawEnemy (array, fillColor) {
 			// if (fillColor == undefined) {
 				fillColor = "rgb(255, 0, 0)";
+				strokeColor = "rgb(0, 0, 0)";
 			// }
 				game.contextEnemy.beginPath();
 				game.contextEnemy.moveTo(array[0][0],array[0][1]);
 				for (var i = array.length - 1; i > 0; i--) {
 					game.contextEnemy.lineTo(array[i][0],array[i][1]);
 				}
-				var lineWidth = 7;
+				// var lineWidth = 7;
 				game.contextEnemy.closePath();
 				game.contextEnemy.fillStyle = fillColor;
 				game.contextEnemy.fill();
-				game.contextEnemy.clearRect(array[0][0] + lineWidth,array[0][1] + lineWidth, array[1][0] - array[0][0] - (lineWidth * 2), array[1][0] - array[0][0] - (lineWidth * 2));
+				game.contextEnemy.clearRect(array[0][0] + game.lineWidth,array[0][1] + game.lineWidth, array[1][0] - array[0][0] - (game.lineWidth * 2), array[1][0] - array[0][0] - (game.lineWidth * 2));
 				game.contextEnemy.beginPath();
 				game.contextEnemy.rect(array[0][0],array[0][1],array[1][0] - array[0][0],array[1][0] - array[0][0]);
 				// game.contextEnemy.moveTo(array[0][0] + 10,array[0][1] + 10);
@@ -194,16 +207,23 @@
 				// game.contextEnemy.lineTo(array[3][0] + 10,array[3][1] - 10);
 				game.contextEnemy.closePath();
 				game.contextEnemy.lineWidth=game.lineWidth;
-				game.contextEnemy.fillStyle = fillColor;
+				game.contextEnemy.strokeStyle = strokeColor;
 				game.contextEnemy.stroke();
 			
 		}
-		function drawCoin (x, y, radius) {
+		function drawCoin (x, y, radius, bonus) {
 			startAngle = 0;
 			endAngle = Math.PI*2;
 			anticlockwise = true;
-			color = "rgb(0,0,0)";
-			colorRed = "rgb(255,0,0)";
+			var color = "rgb(0,0,0)";
+			var colorBonus = "rgb(120,0,0)";
+			if (bonus == false) {
+				colorBonus = "rgb(255,0,0)";
+			
+			} else {
+				colorBonus = "rgb(0,153,255)";
+			}
+				
 			game.contextCoins.beginPath();
 	   		game.contextCoins.arc(x, y, radius, startAngle, endAngle, anticlockwise);
 			game.contextCoins.closePath();
@@ -211,11 +231,12 @@
 			game.contextCoins.lineWidth = game.lineWidth;
 			game.contextCoins.stroke();
 			game.contextCoins.beginPath();
-	   		game.contextCoins.arc(x, y, radius - (game.lineWidth * 1), startAngle, endAngle, anticlockwise);
+	   		game.contextCoins.arc(x, y, radius - game.lineWidth, startAngle, endAngle, anticlockwise);
 			game.contextCoins.closePath();
-			game.contextCoins.strokeStyle = colorRed;
-			game.contextCoins.lineWidth = game.lineWidth;
+			game.contextCoins.strokeStyle = colorBonus;
+			game.contextCoins.lineWidth = game.lineWidth / 2;
 			game.contextCoins.stroke();
+			// }
 		}
 		function spawnSpot(d) {
 			var f = Math.floor(Math.random()*100) + 100;
@@ -260,7 +281,7 @@
 				drawEnemy(game.enemy.array[i], "rgb(120,120,0)");
 			}
 			for(i in game.coins.array) {
-				drawCoin(game.coins.array[i][0],game.coins.array[i][1],game.coins.array[i][2]);
+				drawCoin(game.coins.array[i][0],game.coins.array[i][1],game.coins.array[i][2],game.powerUp[game.coins.array[i][3]]);
 			}
 		}
 		function loop () {
