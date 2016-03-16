@@ -126,16 +126,16 @@
 						game.player.rendered = false;
 					}
 				}
-				$("#left").mousedown(function(){
+				$("#left").bind("touchstart", function(){
 					game.keys[37] = true;
 				});
-				$("#left").mouseup(function(){
+				$("#left").bind("touchend", function(){
 					game.keys.splice(37,1);
 				});
-				$("#right").mousedown(function(){
+				$("#right").bind("touchstart", function(){
 					game.keys[39] = true;
 				});
-				$("#right").mouseup(function(){
+				$("#right").bind("touchend", function(){
 					game.keys.splice(39,1);
 				});
 				if (game.enemy.spawn == true) {
