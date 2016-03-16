@@ -126,6 +126,18 @@
 						game.player.rendered = false;
 					}
 				}
+				$("#left").mousedown(function(){
+					game.keys[37] = true;
+				});
+				$("#left").mouseup(function(){
+					game.keys.splice(37,1);
+				});
+				$("#right").mousedown(function(){
+					game.keys[39] = true;
+				});
+				$("#right").mouseup(function(){
+					game.keys.splice(39,1);
+				});
 				if (game.enemy.spawn == true) {
 					setTimeout(function () {
 						// var x = Math.floor(Math.random()*(700 - game.enemy.width) + 1);

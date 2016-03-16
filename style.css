@@ -8,3 +8,19 @@ canvas {
 #backgroundCanvas {
 	/*background-color: #000;*/
 }
+
+button {
+	position: relative;
+	background-color: #4CAF50;
+	text-align: center;
+	color: white;
+	width: 200px;
+	height: 100px;
+	font-size: 30px;
+	padding: 0;
+}
+#right {
+	margin-top: 750px;
+	margin-left: 295px;
+
+}
