@@ -10,6 +10,7 @@
 		game.contextPlayer = $("#playerCanvas")[0].getContext("2d");
 		game.contextEnemy = $("#enemyCanvas")[0].getContext("2d");
 		game.contextCoins = $("#coinsCanvas")[0].getContext("2d");
+		game.contextMenu = $("#menuCanvas")[0].getContext("2d");
 
 		game.coins = [];
 		game.keys = [];
@@ -20,7 +21,58 @@
 		game.requiredImages = 0;
 		game.lineWidth = 6;
 
-		game.enemy = {
+		game.menu = {
+			width: 300,
+			height: 150,
+			x: 300,
+			y: 300,
+			rendered: false
+		}
+
+		// game.enemy = {
+		// 	array: [],
+		// 	speed: 4,
+		// 	width: 70,
+		// 	spawn: true,
+		// 	prevX: 250
+		// }
+
+		// game.coins = {
+		// 	array: [],
+		// 	speed: 4,
+		// 	radius: 20,
+		// 	spawn: true,
+		// 	prevX: 150,
+		// 	collectable: false
+		// }
+
+		// game.player = {
+		// 	x: 300,
+		// 	y: game.height - 110,
+		// 	width: 70,
+		// 	height: 70,
+		// 	speed: 8,
+		// 	life: true,
+		// 	rendered: false
+		// }
+
+		game.powerUp = ["none", "guard"];
+
+		game.spawnSpots = {
+			h: 1,
+
+		}
+
+		$(document).keydown(function(e){
+			game.keys[e.keyCode ? e.keyCode : e.which] = true;
+		});
+
+		$(document).keyup(function(e){
+			delete game.keys[e.keyCode ? e.keyCode : e.which];
+		});
+
+		function init () {
+			game.enemy = {
 			array: [],
 			speed: 4,
 			width: 70,
@@ -44,25 +96,9 @@
 			height: 70,
 			speed: 8,
 			life: true,
-			rendered: false
+			rendered: false,
+			powerUp: 1
 		}
-
-		game.powerUp = [false, "guard"];
-
-		game.spawnSpots = {
-			h: 1,
-
-		}
-
-		$(document).keydown(function(e){
-			game.keys[e.keyCode ? e.keyCode : e.which] = true;
-		});
-
-		$(document).keyup(function(e){
-			delete game.keys[e.keyCode ? e.keyCode : e.which];
-		});
-
-		function init () {
 			loop();
 		}
 		function addPowerUp(){
@@ -75,7 +111,8 @@
 		}
 		function update () {
 			if (!game.player.life) {
-				game.player.life = false;
+				// game.player.life = false;
+				menu();
 			} else {
 				if(game.keys[37] || game.keys[65]) {
 					if(game.player.x > 5) {
@@ -142,7 +179,8 @@
 					player = {
 						x: game.player.x,
 						y: game.player.y,
-						width: game.player.width
+						width: game.player.width,
+						height: game.player.height
 					}
 					for (i in game.enemy.array){
 						var enemyArray = game.enemy.array[i];
@@ -156,12 +194,19 @@
 						enemy = {
 							x: game.enemy.array[i][0][0],
 							y: game.enemy.array[i][0][1],
-							width: game.enemy.width
+							width: game.enemy.width,
+							height: game.enemy.height
 						}
 						if(((player.x <= enemy.x && enemy.x <= player.x + player.width) || (player.x <= enemy.x + enemy.width && enemy.x + enemy.width <= player.x + player.width)) &&
 							((player.y <= enemy.y && enemy.y <= player.y + player.width) || (player.y <= enemy.y + enemy.width && enemy.y + enemy.width <= player.y + player.width))) 
 						{
-							game.player.life = false;
+							if(game.powerUp[game.player.powerUp] == "none") {
+								game.player.life = false;
+								
+							} else if (game.powerUp[game.player.powerUp] == "guard") {
+								temp.push(i);
+								// destroyRectEnemy(enemy);
+							}
 						}
 					}
 					for (i in temp) {
@@ -169,6 +214,56 @@
 					}
 				}
 			}
+		}
+		function menu() {
+			if(!game.menu.rendered) {
+				game.contextMenu.fillStyle = 'rgba(0,0,0,.2)';
+				game.contextMenu.fillRect(game.width / 2 - (game.menu.width / 2), 0, game.menu.width * 2, game.height);
+				game.contextMenu.fillStyle = "rgb(255,255,255)";
+				game.contextMenu.font = "40px Verdana";
+				game.contextMenu.textAlign = "center";
+				game.contextMenu.fillText('GAME OVER',game.width / 2 + (game.menu.width / 2),game.menu.y + (game.menu.height / 2));
+				game.contextMenu.font = "15px Verdana";
+				game.contextMenu.textAlign = "center";
+				game.contextMenu.fillText('PRESS "SPACE" TO RESTART',game.width / 2 + (game.menu.width / 2),game.menu.y + 40 + (game.menu.height / 2));
+				setTimeout(function() {
+					// game.contextMenu.fillStyle
+					game.menu.rendered = true;
+				}, 100);
+			}
+			if(game.keys[32]) {
+					game.contextMenu.clearRect(game.width / 2 - (game.menu.width / 2), 0, game.menu.width * 2, game.height);
+					game.player.life = true;
+					game.menu.rendered = false;
+
+					game.enemy = {
+						array: [],
+						speed: 4,
+						width: 70,
+						spawn: true,
+						prevX: 250
+					}
+
+					game.coins = {
+						array: [],
+						speed: 4,
+						radius: 20,
+						spawn: true,
+						prevX: 150,
+						collectable: false
+					}
+					game.player = {
+						x: 300,
+						y: game.height - 110,
+						width: 70,
+						height: 70,
+						speed: 8,
+						life: true,
+						rendered: false,
+						powerUp: 1
+					}
+					// init();
+				}
 		}
 		function RectCircleColliding(circle,rect){
 		    var distX = Math.abs(circle.x - rect.x-rect.width/2);
@@ -211,6 +306,13 @@
 				game.contextEnemy.stroke();
 			
 		}
+		// function destroyRectEnemy(enemy) {
+		// 	ctx = game.contextEnemy;
+		// 	ctx.clearRect(enemy.x,enemy.y,enemy.width,enemy.height);
+		// 	ctx.fillRect(enemy.x,enemy.y,enemy.width,enemy.height);
+		// 	ctx.fillStyle = "rgba(255,0,0,.5)";
+		// 	ctx.fill();
+		// }
 		function drawCoin (x, y, radius, bonus) {
 			startAngle = 0;
 			endAngle = Math.PI*2;
@@ -239,11 +341,11 @@
 			// }
 		}
 		function spawnSpot(d) {
-			var f = Math.floor(Math.random()*100) + 100;
+			var f = Math.floor(Math.random()*100) + 20;
 			a = 0;
 			b = 150;
 			c = 300;
-			e = 450;
+			e = 500;
 			r = Math.floor(Math.random()*10);
 			if(r <= 2) {
 				d = a;
