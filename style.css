@@ -10,17 +10,22 @@ canvas {
 }
 
 button {
-	position: relative;
+	position: absolute;
 	background-color: #4CAF50;
 	text-align: center;
 	color: white;
 	width: 200px;
 	height: 100px;
+	margin-top: 700px;
 	font-size: 30px;
 	padding: 0;
 }
 #right {
-	margin-top: 750px;
-	margin-left: 295px;
+	/*margin-top: 750px;*/
+	margin-left: 495px;
 
+}
+#space {
+	width: 295px;
+	margin-left: 200px
 }

@@ -4,13 +4,7 @@
 		var game = {};
 
 		game.width = 700;
-		game.height = 750;
-
-		game.contextBackground = $("#backgroundCanvas")[0].getContext("2d");
-		game.contextPlayer = $("#playerCanvas")[0].getContext("2d");
-		game.contextEnemy = $("#enemyCanvas")[0].getContext("2d");
-		game.contextCoins = $("#coinsCanvas")[0].getContext("2d");
-		game.contextMenu = $("#menuCanvas")[0].getContext("2d");
+		game.height = 700;
 
 		game.coins = [];
 		game.keys = [];
@@ -20,6 +14,8 @@
 		game.doneImages = 0;
 		game.requiredImages = 0;
 		game.lineWidth = 6;
+		game.bonusCounter = 5;
+		game.bonusTime  = 5;
 
 		game.menu = {
 			width: 300,
@@ -28,33 +24,6 @@
 			y: 300,
 			rendered: false
 		}
-
-		// game.enemy = {
-		// 	array: [],
-		// 	speed: 4,
-		// 	width: 70,
-		// 	spawn: true,
-		// 	prevX: 250
-		// }
-
-		// game.coins = {
-		// 	array: [],
-		// 	speed: 4,
-		// 	radius: 20,
-		// 	spawn: true,
-		// 	prevX: 150,
-		// 	collectable: false
-		// }
-
-		// game.player = {
-		// 	x: 300,
-		// 	y: game.height - 110,
-		// 	width: 70,
-		// 	height: 70,
-		// 	speed: 8,
-		// 	life: true,
-		// 	rendered: false
-		// }
 
 		game.powerUp = ["none", "guard"];
 
@@ -72,7 +41,15 @@
 		});
 
 		function init () {
-			game.enemy = {
+		$('#body').append('<canvas id="backgroundCanvas" width="700" height="750"></canvas><canvas id="playerCanvas" width="700" height="750"></canvas>	<canvas id="enemyCanvas" width="700" height="750"></canvas><canvas id="coinsCanvas" width="700" height="750"></canvas>	<canvas id="menuCanvas" width="1000" height="750"></canvas>	<button id="left">LEFT</button>	<button id="space">SPACE</button>	<button id="right">RIGHT</button>');
+		game.contextBackground = $("#backgroundCanvas")[0].getContext("2d");
+		game.contextPlayer = $("#playerCanvas")[0].getContext("2d");
+		game.contextEnemy = $("#enemyCanvas")[0].getContext("2d");
+		game.contextCoins = $("#coinsCanvas")[0].getContext("2d");
+		game.contextMenu = $("#menuCanvas")[0].getContext("2d");
+		game.keys = [];
+
+		game.enemy = {
 			array: [],
 			speed: 4,
 			width: 70,
@@ -97,7 +74,7 @@
 			speed: 8,
 			life: true,
 			rendered: false,
-			powerUp: 1
+			powerUp: 0
 		}
 			loop();
 		}
@@ -111,7 +88,6 @@
 		}
 		function update () {
 			if (!game.player.life) {
-				// game.player.life = false;
 				menu();
 			} else {
 				if(game.keys[37] || game.keys[65]) {
@@ -126,26 +102,30 @@
 						game.player.rendered = false;
 					}
 				}
-				$("#left").bind("touchstart", function(){
+				$("#left").bind("touchstart mousedown", function(){
+					game.keys = [];
 					game.keys[37] = true;
 				});
-				$("#left").bind("touchend", function(){
-					game.keys.splice(37,1);
+				$("#left, #right").bind("touchend mouseup", function(){
+					game.keys = [];
 				});
-				$("#right").bind("touchstart", function(){
+				$("#right").bind("touchstart mousedown", function(){
+					game.keys = [];
 					game.keys[39] = true;
 				});
-				$("#right").bind("touchend", function(){
-					game.keys.splice(39,1);
+				$("#space").bind("tap click", function(){
+					game.keys[32] = true;
 				});
+				if (game.keys[32] == true ) {
+					game.keys = [];
+				}
 				if (game.enemy.spawn == true) {
 					setTimeout(function () {
-						// var x = Math.floor(Math.random()*(700 - game.enemy.width) + 1);
 						var x = spawnSpot(game.enemy.prevX);
-						// console.log(x);
 						game.enemy.prevX = x;
+						var y = addPowerUp();
 						var enemyArray = [[x,-game.enemy.width],[x + game.enemy.width,-game.enemy.width],[x + game.enemy.width,-game.enemy.width + game.enemy.width],
-						[x,-game.enemy.width + game.enemy.width]];
+						[x,-game.enemy.width + game.enemy.width],y];
 						game.enemy.array.push(enemyArray);
 						game.enemy.spawn = true;
 					}, 1000);
@@ -153,7 +133,6 @@
 				}
 				if (game.coins.spawn == true) {
 					setTimeout(function () {
-						// var x = Math.floor(Math.random()*(700 - game.coins.radius) + 5);
 						var x = spawnSpot(game.coins.prevX);
 						game.coins.prevX = x;
 						var y = addPowerUp();
@@ -172,17 +151,34 @@
 							coinObj = {
 								x: coinsArray[0],
 								y: coinsArray[1],
-								radius: game.coins.radius
+								radius: game.coins.radius,
+								bonus: coinsArray[3]
 							}
 						if (RectCircleColliding(coinObj, game.player)){
-							game.player.life = false;
-						}
-						if (coinsArray[1] + game.coins.radius > game.height + (game.coins.radius * 2)) {
-							temp.push(i);
+							if(game.powerUp[game.player.powerUp] == "none") {
+								if(coinObj.bonus == 0) {
+									game.player.life = false;
+								} else if (coinObj.bonus == 1) {
+									game.player.powerUp = 1;		
+								}
+							} else if (game.powerUp[game.player.powerUp] == "guard") {
+								temp.push(i);
+								var y = setTimeout(function(){ 
+									game.player.powerUp = 0;
+									// game.player.rendered = false;
+									clearTimeout(y);
+								}, 5000);
+							}
+							if (coinsArray[1] + game.coins.radius > game.height + (game.coins.radius * 2)) {
+								temp.push(i);
+							}
 						}
 					}
+					
+						
 					for(i in temp){
 						game.coins.array.splice(temp[i],1);
+					
 					}
 				}
 
@@ -214,10 +210,9 @@
 						{
 							if(game.powerUp[game.player.powerUp] == "none") {
 								game.player.life = false;
-								
+
 							} else if (game.powerUp[game.player.powerUp] == "guard") {
 								temp.push(i);
-								// destroyRectEnemy(enemy);
 							}
 						}
 					}
@@ -227,6 +222,7 @@
 				}
 			}
 		}
+		
 		function menu() {
 			if(!game.menu.rendered) {
 				game.contextMenu.fillStyle = 'rgba(0,0,0,.2)';
@@ -239,12 +235,11 @@
 				game.contextMenu.textAlign = "center";
 				game.contextMenu.fillText('PRESS "SPACE" TO RESTART',game.width / 2 + (game.menu.width / 2),game.menu.y + 40 + (game.menu.height / 2));
 				setTimeout(function() {
-					// game.contextMenu.fillStyle
 					game.menu.rendered = true;
 				}, 100);
 			}
 			if(game.keys[32]) {
-					game.contextMenu.clearRect(game.width / 2 - (game.menu.width / 2), 0, game.menu.width * 2, game.height);
+					game.contextMenu.clearRect(game.width / 2 - (game.menu.width / 2) - 1, 0, game.menu.width * 2 + 2, game.height);
 					game.player.life = true;
 					game.menu.rendered = false;
 
@@ -272,10 +267,9 @@
 						speed: 8,
 						life: true,
 						rendered: false,
-						powerUp: 1
+						powerUp: 0
 					}
-					// init();
-				}
+			}
 		}
 		function RectCircleColliding(circle,rect){
 		    var distX = Math.abs(circle.x - rect.x-rect.width/2);
@@ -292,52 +286,36 @@
 		    return (dx*dx+dy*dy<=(circle.radius*circle.radius));
 		}
 		function drawEnemy (array, fillColor) {
-			// if (fillColor == undefined) {
 				fillColor = "rgb(255, 0, 0)";
 				strokeColor = "rgb(0, 0, 0)";
-			// }
 				game.contextEnemy.beginPath();
 				game.contextEnemy.moveTo(array[0][0],array[0][1]);
 				for (var i = array.length - 1; i > 0; i--) {
 					game.contextEnemy.lineTo(array[i][0],array[i][1]);
 				}
-				// var lineWidth = 7;
 				game.contextEnemy.closePath();
 				game.contextEnemy.fillStyle = fillColor;
 				game.contextEnemy.fill();
 				game.contextEnemy.clearRect(array[0][0] + game.lineWidth,array[0][1] + game.lineWidth, array[1][0] - array[0][0] - (game.lineWidth * 2), array[1][0] - array[0][0] - (game.lineWidth * 2));
 				game.contextEnemy.beginPath();
 				game.contextEnemy.rect(array[0][0],array[0][1],array[1][0] - array[0][0],array[1][0] - array[0][0]);
-				// game.contextEnemy.moveTo(array[0][0] + 10,array[0][1] + 10);
-				// game.contextEnemy.lineTo(array[1][0] - 10,array[1][1] + 10);
-				// game.contextEnemy.lineTo(array[2][0] - 10,array[2][1] - 10);
-				// game.contextEnemy.lineTo(array[3][0] + 10,array[3][1] - 10);
 				game.contextEnemy.closePath();
 				game.contextEnemy.lineWidth=game.lineWidth;
 				game.contextEnemy.strokeStyle = strokeColor;
 				game.contextEnemy.stroke();
-			
 		}
-		// function destroyRectEnemy(enemy) {
-		// 	ctx = game.contextEnemy;
-		// 	ctx.clearRect(enemy.x,enemy.y,enemy.width,enemy.height);
-		// 	ctx.fillRect(enemy.x,enemy.y,enemy.width,enemy.height);
-		// 	ctx.fillStyle = "rgba(255,0,0,.5)";
-		// 	ctx.fill();
-		// }
 		function drawCoin (x, y, radius, bonus) {
 			startAngle = 0;
 			endAngle = Math.PI*2;
 			anticlockwise = true;
 			var color = "rgb(0,0,0)";
 			var colorBonus = "rgb(120,0,0)";
-			if (bonus == false) {
+			if (bonus == 0) {
 				colorBonus = "rgb(255,0,0)";
 			
 			} else {
 				colorBonus = "rgb(0,153,255)";
 			}
-				
 			game.contextCoins.beginPath();
 	   		game.contextCoins.arc(x, y, radius, startAngle, endAngle, anticlockwise);
 			game.contextCoins.closePath();
@@ -350,7 +328,6 @@
 			game.contextCoins.strokeStyle = colorBonus;
 			game.contextCoins.lineWidth = game.lineWidth / 2;
 			game.contextCoins.stroke();
-			// }
 		}
 		function spawnSpot(d) {
 			var f = Math.floor(Math.random()*100) + 20;
@@ -379,23 +356,28 @@
 		function renderGame() {
 			game.contextBackground.clearRect(0, 0, game.width, game.height);
 			game.contextBackground.fillRect(0, 0, game.width, game.height);
-
 			game.contextBackground.fillStyle = "rgb(255,165,0)";
-			if(!game.player.rendered) {
-				game.contextPlayer.fillStyle = "rgb(25,165,79)";
+				if(game.player.powerUp == 0) {
+					game.contextPlayer.fillStyle = "rgb(25,165,79)";
+				} else if (game.player.powerUp == 1) {
+					game.contextPlayer.fillStyle = "rgb(255,0,0)";
+				}
+			// if(!game.player.rendered) {
 				game.contextPlayer.clearRect(0, 0, game.width, game.height);
 				game.contextPlayer.fillRect(game.player.x, game.player.y, game.player.width, game.player.height);
+				game.contextPlayer.fillStyle = "rgb(25,165,79)";
 				game.contextPlayer.clearRect(game.player.x + 5, game.player.y + 5, game.player.width - 10, game.player.height - 10);
 				game.contextPlayer.fillRect(game.player.x + 10, game.player.y + 10, game.player.width - 20, game.player.height - 20);
 				game.player.rendered = true;
-			}
-			game.contextEnemy.clearRect(0,0,700,750);
-			game.contextCoins.clearRect(0,0,700,750);
+				// }
+			
+			game.contextEnemy.clearRect(0,0,game.width,game.height);
+			game.contextCoins.clearRect(0,0,game.width,game.height);
 			for(i in game.enemy.array) {
 				drawEnemy(game.enemy.array[i], "rgb(120,120,0)");
 			}
 			for(i in game.coins.array) {
-				drawCoin(game.coins.array[i][0],game.coins.array[i][1],game.coins.array[i][2],game.powerUp[game.coins.array[i][3]]);
+				drawCoin(game.coins.array[i][0],game.coins.array[i][1],game.coins.array[i][2],game.coins.array[i][3]);
 			}
 		}
 		function loop () {
