@@ -16,6 +16,9 @@
 		game.lineWidth = 6;
 		game.bonusCounter = 5;
 		game.bonusTime  = 5;
+		game.isPaused = false;
+		coinPoints = 20;
+		squerPoints = 10;
 
 		game.menu = {
 			width: 300,
@@ -41,13 +44,16 @@
 		});
 
 		function init () {
-		$('#body').append('<canvas id="backgroundCanvas" width="700" height="750"></canvas><canvas id="playerCanvas" width="700" height="750"></canvas>	<canvas id="enemyCanvas" width="700" height="750"></canvas><canvas id="coinsCanvas" width="700" height="750"></canvas>	<canvas id="menuCanvas" width="1000" height="750"></canvas>	<button id="left">LEFT</button>	<button id="space">SPACE</button>	<button id="right">RIGHT</button>');
+		$('#body').append('<canvas id="backgroundCanvas" width="700" height="750"></canvas><canvas id="playerCanvas" width="700" height="750"></canvas>	<canvas id="enemyCanvas" width="700" height="750"></canvas><canvas id="coinsCanvas" width="700" height="750"></canvas>	<canvas id="menuCanvas" width="1000" height="750"></canvas><div id="score">0</div>	<button id="left">LEFT</button>	<button id="space">SPACE</button>	<button id="right">RIGHT</button>');
 		game.contextBackground = $("#backgroundCanvas")[0].getContext("2d");
 		game.contextPlayer = $("#playerCanvas")[0].getContext("2d");
 		game.contextEnemy = $("#enemyCanvas")[0].getContext("2d");
 		game.contextCoins = $("#coinsCanvas")[0].getContext("2d");
 		game.contextMenu = $("#menuCanvas")[0].getContext("2d");
+		game.score = $("#score");
 		game.keys = [];
+		score = 0;
+		timeOutFunc = [];
 
 		game.enemy = {
 			array: [],
@@ -80,7 +86,8 @@
 		}
 		function addPowerUp(){
 			var x = Math.floor(Math.random() * 10);
-			if (x <= 5) {
+			if (x <= 2) {
+				game.scroe+=20;
 				return 1;
 			} else {
 				return 0;
@@ -124,11 +131,12 @@
 						var x = spawnSpot(game.enemy.prevX);
 						game.enemy.prevX = x;
 						var y = addPowerUp();
+						game.enemy.width = Math.floor(Math.random()*10 + 40);
 						var enemyArray = [[x,-game.enemy.width],[x + game.enemy.width,-game.enemy.width],[x + game.enemy.width,-game.enemy.width + game.enemy.width],
 						[x,-game.enemy.width + game.enemy.width],y];
 						game.enemy.array.push(enemyArray);
 						game.enemy.spawn = true;
-					}, 1000);
+					}, 500);
 					game.enemy.spawn = false;
 				}
 				if (game.coins.spawn == true) {
@@ -139,7 +147,7 @@
 						var coinsArray = [x, -1 * game.coins.radius, game.coins.radius,y];
 						game.coins.array.push(coinsArray);
 						game.coins.spawn = true;
-					}, 400);
+					}, 300);
 						game.coins.spawn = false;
 
 				}
@@ -159,15 +167,20 @@
 								if(coinObj.bonus == 0) {
 									game.player.life = false;
 								} else if (coinObj.bonus == 1) {
+									// setTimeout(function(){
+									// }, 4990);
 									game.player.powerUp = 1;		
 								}
 							} else if (game.powerUp[game.player.powerUp] == "guard") {
+								updateScore(score+=coinPoints);
 								temp.push(i);
-								var y = setTimeout(function(){ 
+								clearInterval(timeOutFunc);
+								timeOutFunc = setInterval(function(){ 
 									game.player.powerUp = 0;
 									// game.player.rendered = false;
-									clearTimeout(y);
+									// clearTimeout(y);
 								}, 5000);
+								
 							}
 							if (coinsArray[1] + game.coins.radius > game.height + (game.coins.radius * 2)) {
 								temp.push(i);
@@ -212,6 +225,7 @@
 								game.player.life = false;
 
 							} else if (game.powerUp[game.player.powerUp] == "guard") {
+								updateScore(score+=squerPoints);
 								temp.push(i);
 							}
 						}
@@ -345,7 +359,6 @@
 			} else {
 				d = e;
 			}
-			// console.log(r);
 			if (d <= 50) {
 				game.spawnSpots.h = 1;
 			} else if (d >= 650) {
@@ -380,6 +393,9 @@
 				drawCoin(game.coins.array[i][0],game.coins.array[i][1],game.coins.array[i][2],game.coins.array[i][3]);
 			}
 		}
+		function updateScore (score) {
+			game.score.text(score);
+		}
 		function loop () {
 			requestAnimFrame(function() {
 				loop();
@@ -398,7 +414,7 @@ window.requestAnimFrame = (function(){
 			window.oRequestAnimationFrame||
 			window.msRequestAnimationFrame||
 			function (callback) {
-				window.setTimeout(callback, 1000/60);
+				window.setTimeout(callback, 1000/30);
 			};
 })();
 

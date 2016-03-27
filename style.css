@@ -29,3 +29,11 @@ button {
 	width: 295px;
 	margin-left: 200px
 }
+#score {
+		font-size: 20px;
+		position: absolute;
+		color: black;
+		width: 100px;
+		height: 20px;
+		margin-left: 10px;
+}
